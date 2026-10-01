@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ELKO — Tecnología que se queda contigo</title>
+<meta name="description" content="ELKO: audio, smartphones, laptops y wearables seleccionados. Envíos a todo el Perú.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F3F5;
+  --white:#FFFFFF;
+  --ink:#16202B;
+  --steel:#6B7685;
+  --line:#D9DDE3;
+  --cobalt:#2F4BFF;
+  --cobalt-soft:#E4E8FF;
+  --display:"Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --body:"Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --wrap:1180px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+img,svg{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--cobalt);outline-offset:3px;border-radius:4px}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 28px}
+
+/* Nav */
+.nav{position:sticky;top:0;z-index:40;background:rgba(242,243,245,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:.04em;text-decoration:none}
+.nav ul{display:flex;gap:32px;list-style:none}
+.nav ul a{text-decoration:none;font-size:15px;color:var(--steel);transition:color .2s}
+.nav ul a:hover{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:10px;border:0;border-radius:999px;padding:14px 26px;font-weight:600;font-size:15px;text-decoration:none;transition:transform .2s, background .2s}
+.btn-ink{background:var(--ink);color:var(--white)}
+.btn-ink:hover{background:var(--cobalt)}
+.btn-ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.btn-ghost:hover{background:var(--ink);color:var(--white)}
+.nav .btn{padding:10px 20px}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;padding:72px 0 0}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:end}
+.hero h1{font-family:var(--display);font-weight:300;font-size:clamp(44px,6.4vw,88px);line-height:.98;letter-spacing:-.03em;max-width:11ch}
+.hero p.lead{margin:28px 0 36px;max-width:42ch;color:var(--steel);font-size:19px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.hero-stage{position:relative;height:520px}
+.device{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:260px;height:530px;border-radius:44px;background:linear-gradient(160deg,#2a3442,#0f161f);padding:12px;box-shadow:0 60px 80px -40px rgba(22,32,43,.55)}
+.device .screen{width:100%;height:100%;border-radius:34px;background:radial-gradient(120% 80% at 30% 15%,#7f93ff 0%,#2F4BFF 38%,#16202B 100%);position:relative;overflow:hidden}
+.device .screen::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 40% at 75% 85%,rgba(255,255,255,.18),transparent 70%)}
+.device .island{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:84px;height:24px;border-radius:20px;background:#0a0f15;z-index:2}
+.device .clock{position:absolute;top:96px;width:100%;text-align:center;color:#fff;font-family:var(--display);font-weight:300;font-size:64px;letter-spacing:-.02em}
+.device .date{position:absolute;top:172px;width:100%;text-align:center;color:rgba(255,255,255,.75);font-size:14px}
+.ring{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:440px;height:440px;border-radius:50%;border:1px solid var(--line)}
+.ring.r2{width:600px;height:600px}
+.wordmark{font-family:var(--display);font-weight:700;font-size:clamp(120px,24vw,340px);line-height:.78;letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1px #c3c9d2;text-align:center;margin-top:-30px;user-select:none;position:relative;z-index:0}
+@media (prefers-reduced-motion:no-preference){
+  .device{animation:rise 1.1s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes rise{from{opacity:0;transform:translate(-50%,60px)}to{opacity:1;transform:translate(-50%,0)}}
+}
+
+/* Categories */
+section{padding:110px 0}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:48px;flex-wrap:wrap}
+h2{font-family:var(--display);font-weight:500;font-size:clamp(32px,4vw,52px);line-height:1.05;letter-spacing:-.02em;max-width:16ch}
+.sec-head p{color:var(--steel);max-width:38ch}
+.cats{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cat{padding:34px 22px;border-right:1px solid var(--line);text-decoration:none;display:flex;flex-direction:column;gap:30px;transition:background .25s}
+.cat:last-child{border-right:0}
+.cat:hover{background:var(--white)}
+.cat svg{width:44px;height:44px;stroke:var(--ink);fill:none;stroke-width:1.4}
+.cat strong{font-family:var(--display);font-weight:500;font-size:21px}
+.cat span{color:var(--steel);font-size:14px}
+
+/* Products */
+.products{background:var(--white)}
+.prod-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px}
+.prod{background:var(--paper);border-radius:28px;padding:30px;display:flex;flex-direction:column;justify-content:space-between;min-height:420px;position:relative}
+.prod.feature{grid-row:span 2;background:var(--ink);color:var(--white)}
+.prod .art{flex:1;display:grid;place-items:center;padding:20px 0}
+.prod .art svg{width:70%;max-width:220px;stroke:currentColor;fill:none;stroke-width:1.2}
+.prod.feature .art svg{max-width:300px}
+.prod h3{font-family:var(--display);font-weight:500;font-size:24px;letter-spacing:-.01em}
+.prod .meta{color:var(--steel);font-size:14px;margin-top:4px}
+.prod.feature .meta{color:#9aa6b6}
+.prod .row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;gap:12px}
+.price{font-family:var(--display);font-size:20px}
+.prod .btn{padding:11px 20px;font-size:14px}
+.prod.feature .btn{background:var(--white);color:var(--ink)}
+.prod.feature .btn:hover{background:var(--cobalt);color:var(--white)}
+.tag{position:absolute;top:24px;left:30px;font-size:13px;padding:5px 12px;border-radius:999px;background:var(--cobalt);color:#fff}
+
+/* Promise */
+.promise-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:56px}
+.promise h3{font-family:var(--display);font-weight:500;font-size:22px;margin:22px 0 10px}
+.promise p{color:var(--steel);max-width:32ch}
+.promise .ico{width:52px;height:52px;border-radius:50%;background:var(--cobalt-soft);display:grid;place-items:center}
+.promise .ico svg{width:24px;height:24px;stroke:var(--cobalt);fill:none;stroke-width:1.6}
+
+/* CTA */
+.cta{padding:0 0 110px}
+.cta-box{background:var(--cobalt);color:#fff;border-radius:36px;padding:72px 64px;display:flex;justify-content:space-between;align-items:center;gap:40px;flex-wrap:wrap;overflow:hidden;position:relative}
+.cta-box h2{color:#fff;max-width:14ch}
+.cta-box p{opacity:.85;margin-top:14px;max-width:40ch}
+.cta-box .btn{background:#fff;color:var(--ink)}
+.cta-box .btn:hover{background:var(--ink);color:#fff}
+
+footer{border-top:1px solid var(--line);padding:40px 0;color:var(--steel);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+
+/* Chatbot */
+.chat-launch{position:fixed;right:24px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:60;width:64px;height:64px;border-radius:50%;border:0;background:var(--ink);color:#fff;display:grid;place-items:center;box-shadow:0 18px 40px -12px rgba(22,32,43,.55);transition:transform .2s, background .2s}
+.chat-launch:hover{transform:scale(1.05);background:var(--cobalt)}
+.chat-launch svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.8}
+.chat-launch .dot{position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:var(--cobalt);border:2px solid var(--paper)}
+.chat{position:fixed;right:24px;bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:61;width:380px;max-width:calc(100vw - 32px);height:580px;max-height:calc(100vh - 140px);background:var(--white);border-radius:26px;box-shadow:0 40px 90px -30px rgba(22,32,43,.45);display:flex;flex-direction:column;overflow:hidden;opacity:0;transform:translateY(16px) scale(.98);pointer-events:none;transition:opacity .25s, transform .25s}
+.chat.open{opacity:1;transform:none;pointer-events:auto}
+.chat-head{padding:18px 20px;background:var(--ink);color:#fff;display:flex;align-items:center;gap:12px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--cobalt);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:15px}
+.chat-head strong{display:block;font-size:15px}
+.chat-head small{color:#9aa6b6;font-size:12.5px}
+.chat-close{margin-left:auto;background:transparent;border:0;color:#fff;width:34px;height:34px;border-radius:50%}
+.chat-close:hover{background:rgba(255,255,255,.12)}
+.chat-body{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px;background:var(--paper)}
+.msg{max-width:84%;padding:11px 15px;border-radius:18px;font-size:14.5px;line-height:1.45;white-space:pre-line}
+.msg.bot{background:var(--white);border-bottom-left-radius:6px;align-self:flex-start}
+.msg.user{background:var(--ink);color:#fff;border-bottom-right-radius:6px;align-self:flex-end}
+.typing{display:inline-flex;gap:4px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--steel);opacity:.5;animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{50%{opacity:1}}
+.quick{display:flex;flex-wrap:wrap;gap:8px;align-self:flex-start;max-width:100%}
+.quick button{background:var(--white);border:1px solid var(--line);color:var(--ink);padding:8px 14px;border-radius:999px;font-size:13.5px;transition:border-color .2s, color .2s}
+.quick button:hover{border-color:var(--cobalt);color:var(--cobalt)}
+.quick .wa{background:#1FAF55;border-color:#1FAF55;color:#fff}
+.quick .wa:hover{background:#178f45;color:#fff;border-color:#178f45}
+.chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);background:var(--white)}
+.chat-input input{flex:1;border:1px solid var(--line);border-radius:999px;padding:12px 16px;font:inherit;font-size:14.5px;background:var(--paper);color:var(--ink)}
+.chat-input input:focus{outline:none;border-color:var(--cobalt)}
+.chat-input button{width:44px;height:44px;border-radius:50%;border:0;background:var(--ink);display:grid;place-items:center}
+.chat-input button:hover{background:var(--cobalt)}
+.chat-input svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
+
+/* Responsive */
+@media (max-width:980px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-stage{height:460px}
+  .cats{grid-template-columns:repeat(2,1fr)}
+  .cat{border-bottom:1px solid var(--line)}
+  .prod-grid{grid-template-columns:1fr 1fr}
+  .prod.feature{grid-column:span 2;grid-row:auto}
+  .promise-grid{grid-template-columns:1fr;gap:40px}
+  .nav ul{display:none}
+}
+@media (max-width:600px){
+  section{padding:80px 0}
+  .prod-grid{grid-template-columns:1fr}
+  .prod.feature{grid-column:auto}
+  .cta-box{padding:48px 30px}
+  .chat{right:16px;bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  .chat-launch{right:16px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Principal">
+  <div class="wrap">
+    <a href="#" class="logo">ELKO</a>
+    <ul>
+      <li><a href="#categorias">Categorías</a></li>
+      <li><a href="#destacados">Destacados</a></li>
+      <li><a href="#garantia">Garantía</a></li>
+    </ul>
+    <button class="btn btn-ink" data-open-chat>Hablar con un asesor</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1>Tecnología elegida con criterio.</h1>
+      <p class="lead">Audio, smartphones, laptops y wearables originales, seleccionados uno por uno. Te asesoramos antes de comprar y te respondemos después.</p>
+      <div class="hero-actions">
+        <a href="#destacados" class="btn btn-ink">Ver productos</a>
+        <button class="btn btn-ghost" data-open-chat>Consultar por chat</button>
+      </div>
+    </div>
+    <div class="hero-stage" aria-hidden="true">
+      <div class="ring"></div><div class="ring r2"></div>
+      <div class="device"><div class="screen"><div class="island"></div><div class="clock" id="clock">09:41</div><div class="date" id="date">ELKO</div></div></div>
+    </div>
+  </div>
+  <div class="wordmark" aria-hidden="true">ELKO</div>
+</header>
+
+<section id="categorias">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Todo lo que usas a diario, en un solo lugar.</h2>
+      <p>Cinco categorías, solo marcas con garantía oficial en Perú.</p>
+    </div>
+    <div class="cats">
+      <a class="cat" href="#destacados" data-chat-product="Audio">
+        <svg viewBox="0 0 48 48"><path d="M8 30v-6a16 16 0 0 1 32 0v6"/><rect x="6" y="28" width="8" height="12" rx="3"/><rect x="34" y="28" width="8" height="12" rx="3"/></svg>
+        <div><strong>Audio</strong><br><span>Audífonos y parlantes</span></div>
+      </a>
+      <a class="cat" href="#destacados" data-chat-product="Smartphones">
+        <svg viewBox="0 0 48 48"><rect x="14" y="5" width="20" height="38" rx="4"/><path d="M21 9h6"/></svg>
+        <div><strong>Smartphones</strong><br><span>Gama media y alta</span></div>
+      </a>
+      <a class="cat" href="#destacados" data-chat-product="Laptops">
+        <svg viewBox="0 0 48 48"><rect x="9" y="10" width="30" height="20" rx="2"/><path d="M4 36h40l-3-6H7z"/></svg>
+        <div><strong>Laptops</strong><br><span>Trabajo y creatividad</span></div>
+      </a>
+      <a class="cat" href="#destacados" data-chat-product="Wearables">
+        <svg viewBox="0 0 48 48"><rect x="14" y="14" width="20" height="20" rx="6"/><path d="M18 14l2-9h8l2 9M18 34l2 9h8l2-9"/></svg>
+        <div><strong>Wearables</strong><br><span>Relojes y bandas</span></div>
+      </a>
+      <a class="cat" href="#destacados" data-chat-product="Hogar inteligente">
+        <svg viewBox="0 0 48 48"><path d="M6 22L24 8l18 14v18H6z"/><circle cx="24" cy="28" r="5"/></svg>
+        <div><strong>Hogar inteligente</strong><br><span>Luces, cámaras, sensores</span></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="products" id="destacados">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Destacados de la temporada.</h2>
+      <p>Precios referenciales. Confirma stock y promociones con un asesor.</p>
+    </div>
+    <div class="prod-grid">
+      <article class="prod feature">
+        <span class="tag">Nuevo</span>
+        <div class="art">
+          <svg viewBox="0 0 200 200"><path d="M40 120V95a60 60 0 0 1 120 0v25"/><rect x="28" y="112" width="34" height="56" rx="14"/><rect x="138" y="112" width="34" height="56" rx="14"/><path d="M62 126h6M132 126h6"/></svg>
+        </div>
+        <div>
+          <h3>Audífonos Over-Ear Pro</h3>
+          <div class="meta">Cancelación activa de ruido · 40 h de batería</div>
+          <div class="row"><span class="price">S/ 1,299</span><button class="btn" data-buy="Audífonos Over-Ear Pro">Lo quiero</button></div>
+        </div>
+      </article>
+      <article class="prod">
+        <div class="art">
+          <svg viewBox="0 0 200 200"><rect x="62" y="20" width="76" height="160" rx="16"/><path d="M88 32h24"/><circle cx="100" cy="164" r="0.5"/></svg>
+        </div>
+        <div>
+          <h3>Smartphone X 256 GB</h3>
+          <div class="meta">Pantalla OLED 6,7"</div>
+          <div class="row"><span class="price">S/ 3,499</span><button class="btn btn-ghost" data-buy="Smartphone X 256 GB">Lo quiero</button></div>
+        </div>
+      </article>
+      <article class="prod">
+        <div class="art">
+          <svg viewBox="0 0 200 200"><rect x="64" y="60" width="72" height="80" rx="22"/><path d="M78 60l6-36h32l6 36M78 140l6 36h32l6-36"/><path d="M100 84v18l10 8"/></svg>
+        </div>
+        <div>
+          <h3>Reloj Active 2</h3>
+          <div class="meta">GPS, ritmo cardíaco, 7 días</div>
+          <div class="row"><span class="price">S/ 899</span><button class="btn btn-ghost" data-buy="Reloj Active 2">Lo quiero</button></div>
+        </div>
+      </article>
+      <article class="prod">
+        <div class="art">
+          <svg viewBox="0 0 200 200"><rect x="38" y="50" width="124" height="80" rx="6"/><path d="M18 150h164l-14-20H32z"/></svg>
+        </div>
+        <div>
+          <h3>Laptop Air 14</h3>
+          <div class="meta">16 GB RAM · 512 GB SSD</div>
+          <div class="row"><span class="price">S/ 4,799</span><button class="btn btn-ghost" data-buy="Laptop Air 14">Lo quiero</button></div>
+        </div>
+      </article>
+      <article class="prod">
+        <div class="art">
+          <svg viewBox="0 0 200 200"><rect x="66" y="30" width="68" height="140" rx="34"/><circle cx="100" cy="112" r="24"/><circle cx="100" cy="62" r="8"/></svg>
+        </div>
+        <div>
+          <h3>Parlante Studio Mini</h3>
+          <div class="meta">Bluetooth 5.3 · resistente al agua</div>
+          <div class="row"><span class="price">S/ 549</span><button class="btn btn-ghost" data-buy="Parlante Studio Mini">Lo quiero</button></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="garantia">
+  <div class="wrap">
+    <div class="sec-head"><h2>Comprar aquí es sencillo.</h2></div>
+    <div class="promise-grid">
+      <div class="promise">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+        <h3>Envío a todo el Perú</h3>
+        <p>Lima en 24 a 48 horas. Provincias en 2 a 5 días hábiles con seguimiento.</p>
+      </div>
+      <div class="promise">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+        <h3>Garantía oficial de 12 meses</h3>
+        <p>Productos originales con boleta o factura. Si algo falla, nosotros gestionamos el servicio técnico.</p>
+      </div>
+      <div class="promise">
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 15h3"/></svg></div>
+        <h3>Paga como prefieras</h3>
+        <p>Tarjeta, transferencia, Yape o Plin. Cuotas sin intereses con bancos afiliados.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta">
+  <div class="wrap">
+    <div class="cta-box">
+      <div>
+        <h2>¿No sabes cuál elegir?</h2>
+        <p>Cuéntanos cómo lo vas a usar y un asesor te recomienda la mejor opción para tu presupuesto.</p>
+      </div>
+      <button class="btn" data-open-chat>Pedir recomendación</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="yr"></span> ELKO. Lima, Perú.</span>
+    <span>Atención: lunes a sábado, 9:00 a 19:00</span>
+  </div>
+</footer>
+
+<!-- Chatbot -->
+<button class="chat-launch" id="chatLaunch" aria-label="Abrir chat con ELKO" aria-expanded="false" aria-controls="chat">
+  <svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>
+  <span class="dot"></span>
+</button>
+
+<div class="chat" id="chat" role="dialog" aria-label="Chat de ELKO" aria-hidden="true">
+  <div class="chat-head">
+    <div class="avatar">E</div>
+    <div><strong>Asistente ELKO</strong><small>Responde al instante</small></div>
+    <button class="chat-close" id="chatClose" aria-label="Cerrar chat">✕</button>
+  </div>
+  <div class="chat-body" id="chatBody" aria-live="polite"></div>
+  <form class="chat-input" id="chatForm" autocomplete="off">
+    <input id="chatText" type="text" placeholder="Escribe tu mensaje…" aria-label="Mensaje">
+    <button type="submit" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
+  </form>
+</div>
+
+<script>
+/* ============ CONFIGURACIÓN ============ */
+const CONFIG = {
+  whatsapp: "51987002983",                        // código de país Perú + número
+  email: "arturo.melendez.e@gmail.com",           // destino de los leads (vía FormSubmit)
+  formsubmitEndpoint: "https://formsubmit.co/ajax/arturo.melendez.e@gmail.com"
+};
+
+/* ============ Utilidades de la página ============ */
+document.getElementById("yr").textContent = new Date().getFullYear();
+(function tick(){
+  const d = new Date();
+  document.getElementById("clock").textContent = d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit",hour12:false});
+  document.getElementById("date").textContent = d.toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long"});
+  setTimeout(tick, 30000);
+})();
+
+/* ============ Chatbot ============ */
+const chat = document.getElementById("chat");
+const body = document.getElementById("chatBody");
+const form = document.getElementById("chatForm");
+const input = document.getElementById("chatText");
+const launch = document.getElementById("chatLaunch");
+
+const lead = { nombre:"", producto:"", telefono:"", correo:"", comentario:"" };
+let step = "idle";      // idle | nombre | producto | telefono | correo | comentario | confirmar | listo
+let started = false;
+
+function openChat(product){
+  chat.classList.add("open");
+  chat.setAttribute("aria-hidden","false");
+  launch.setAttribute("aria-expanded","true");
+  launch.querySelector(".dot").style.display = "none";
+  if(!started){ started = true; greet(product); }
+  else if(product){ startLead(product); }
+  setTimeout(()=>input.focus(), 250);
+}
+function closeChat(){
+  chat.classList.remove("open");
+  chat.setAttribute("aria-hidden","true");
+  launch.setAttribute("aria-expanded","false");
+  launch.focus();
+}
+launch.addEventListener("click", ()=> chat.classList.contains("open") ? closeChat() : openChat());
+document.getElementById("chatClose").addEventListener("click", closeChat);
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && chat.classList.contains("open")) closeChat(); });
+document.querySelectorAll("[data-open-chat]").forEach(b=>b.addEventListener("click", ()=>openChat()));
+document.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click", ()=>openChat(b.dataset.buy)));
+document.querySelectorAll("[data-chat-product]").forEach(a=>a.addEventListener("dblclick", e=>{e.preventDefault();openChat(a.dataset.chatProduct);}));
+
+function scroll(){ body.scrollTop = body.scrollHeight; }
+function addMsg(text, who="bot"){
+  const m = document.createElement("div");
+  m.className = "msg " + who;
+  m.textContent = text;
+  body.appendChild(m); scroll();
+}
+function clearQuick(){ body.querySelectorAll(".quick").forEach(q=>q.remove()); }
+function quick(options){
+  clearQuick();
+  const wrap = document.createElement("div");
+  wrap.className = "quick";
+  options.forEach(o=>{
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = o.label;
+    if(o.cls) b.className = o.cls;
+    b.addEventListener("click", ()=>{ if(!o.silent) addMsg(o.label,"user"); clearQuick(); o.action(); });
+    wrap.appendChild(b);
+  });
+  body.appendChild(wrap); scroll();
+}
+function bot(text, then, delay=550){
+  const t = document.createElement("div");
+  t.className = "msg bot";
+  t.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+  body.appendChild(t); scroll();
+  setTimeout(()=>{ t.remove(); addMsg(text,"bot"); if(then) then(); }, delay);
+}
+
+const MENU = () => quick([
+  {label:"Ver productos", action:()=>answer("productos")},
+  {label:"Envíos", action:()=>answer("envio")},
+  {label:"Formas de pago", action:()=>answer("pago")},
+  {label:"Garantía", action:()=>answer("garantia")},
+  {label:"Quiero comprar", action:()=>startLead()}
+]);
+
+function greet(product){
+  bot("Hola, soy el asistente de ELKO. Te ayudo a elegir, resolver dudas o separar tu pedido con un asesor.", ()=>{
+    if(product) startLead(product); else bot("¿Qué necesitas?", MENU, 400);
+  });
+}
+
+const FAQ = {
+  productos: "Trabajamos cinco categorías: audio, smartphones, laptops, wearables y hogar inteligente. Destacados de hoy: Audífonos Over-Ear Pro (S/ 1,299), Smartphone X 256 GB (S/ 3,499), Laptop Air 14 (S/ 4,799), Reloj Active 2 (S/ 899) y Parlante Studio Mini (S/ 549).",
+  envio: "Enviamos a todo el Perú. Lima: 24 a 48 horas. Provincias: 2 a 5 días hábiles, con número de seguimiento. El costo depende del distrito o ciudad; el asesor te lo confirma.",
+  pago: "Aceptamos tarjetas de crédito y débito, transferencia bancaria, Yape y Plin. Hay cuotas sin intereses con bancos afiliados.",
+  garantia: "Todos los productos son originales, con garantía oficial de 12 meses y boleta o factura. Si hay una falla, gestionamos el servicio técnico por ti.",
+  horario: "Atendemos de lunes a sábado, de 9:00 a 19:00. Fuera de ese horario deja tus datos y te contactamos al día siguiente.",
+  tienda: "Por ahora somos una tienda online con entregas a domicilio. Puedes coordinar recojo con el asesor."
+};
+function answer(key){
+  bot(FAQ[key], ()=> quick([
+    {label:"Quiero comprar", action:()=>startLead()},
+    {label:"Otra consulta", action:()=>bot("Claro, dime.", MENU, 300)}
+  ]));
+}
+
+/* Detección simple de intención por palabras clave */
+function intent(t){
+  const s = t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  if(/(comprar|pedido|separar|lo quiero|cotiz|asesor|humano|persona|whatsapp)/.test(s)) return "lead";
+  if(/(envio|delivery|despacho|llega|demora|provincia|lima)/.test(s)) return "envio";
+  if(/(pago|pagar|tarjeta|yape|plin|cuota|transferencia)/.test(s)) return "pago";
+  if(/(garantia|original|falla|devolucion|cambio|boleta|factura)/.test(s)) return "garantia";
+  if(/(horario|hora|atienden|abren)/.test(s)) return "horario";
+  if(/(tienda|local|direccion|recojo|ubicacion)/.test(s)) return "tienda";
+  if(/(producto|catalogo|precio|cuanto|audifono|celular|smartphone|laptop|reloj|parlante|camara|stock)/.test(s)) return "productos";
+  if(/^(hola|buenas|buenos|hey|hi)/.test(s)) return "saludo";
+  if(/(gracias|ok|listo|genial)/.test(s)) return "gracias";
+  return null;
+}
+
+/* Flujo de captura de datos */
+function startLead(product){
+  if(product){ lead.producto = product; step = "nombre"; bot(`Perfecto, te ayudo con "${product}". ¿Cuál es tu nombre?`); }
+  else { step = "nombre"; bot("Te conecto con un asesor. Primero, ¿cuál es tu nombre?"); }
+}
+function askProduct(){
+  step = "producto";
+  bot(`Gracias, ${lead.nombre}. ¿Qué producto o categoría te interesa?`, ()=> quick(
+    ["Audio","Smartphones","Laptops","Wearables","Hogar inteligente"].map(p=>({label:p, action:()=>{ lead.producto=p; askPhone(); }}))
+  ));
+}
+function askPhone(){ step = "telefono"; bot("¿A qué número de celular te escribimos? (9 dígitos)"); }
+function askEmail(){
+  step = "correo";
+  bot("¿Tu correo? Lo usamos solo para enviarte la cotización.", ()=> quick([{label:"Prefiero no darlo", action:()=>{ lead.correo="No indicado"; askComment(); }}]));
+}
+function askComment(){
+  step = "comentario";
+  bot("¿Algo más que deba saber el asesor? (presupuesto, color, uso, distrito de entrega)", ()=> quick([{label:"Nada más", action:()=>{ lead.comentario="—"; confirmLead(); }}]));
+}
+function summary(){
+  return `Nombre: ${lead.nombre}\nInterés: ${lead.producto}\nCelular: ${lead.telefono}\nCorreo: ${lead.correo}\nComentario: ${lead.comentario}`;
+}
+function confirmLead(){
+  step = "confirmar";
+  bot("Revisa tus datos:\n\n" + summary(), ()=> quick([
+    {label:"Enviar al asesor", action:sendLead},
+    {label:"Corregir", action:()=>{ Object.keys(lead).forEach(k=>lead[k]=""); startLead(); }}
+  ]));
+}
+
+async function sendLead(){
+  step = "listo";
+  const t = document.createElement("div");
+  t.className = "msg bot";
+  t.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+  body.appendChild(t); scroll();
+
+  let emailOk = false;
+  try{
+    const r = await fetch(CONFIG.formsubmitEndpoint, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "Accept":"application/json" },
+      body: JSON.stringify({
+        _subject: `Nuevo lead ELKO: ${lead.producto} — ${lead.nombre}`,
+        _template: "table",
+        _captcha: "false",
+        Nombre: lead.nombre, Interes: lead.producto, Celular: lead.telefono,
+        Correo: lead.correo, Comentario: lead.comentario,
+        Fecha: new Date().toLocaleString("es-PE")
+      })
+    });
+    const data = await r.json().catch(()=>({}));
+    emailOk = r.ok && (data.success === true || data.success === "true");
+  }catch(e){ emailOk = false; }
+  t.remove();
+
+  addMsg(emailOk
+    ? "Listo. Tus datos ya llegaron a nuestro equipo por correo."
+    : "No se pudo enviar por correo en este momento. Usa WhatsApp para que tu pedido llegue ahora mismo.");
+
+  const waText = encodeURIComponent("Hola ELKO, quiero información:\n\n" + summary());
+  const waURL = `https://wa.me/${CONFIG.whatsapp}?text=${waText}`;
+  bot("Toca el botón para enviar tu pedido por WhatsApp y hablar con el asesor.", ()=> quick([
+    {label:"Enviar por WhatsApp", cls:"wa", silent:true, action:()=>{ window.open(waURL, "_blank", "noopener"); bot("Abrimos WhatsApp con tu mensaje listo. Solo presiona enviar.", MENU_AFTER); }},
+    ...(emailOk ? [] : [{label:"Enviar por correo", silent:true, action:()=>{
+      location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent("Consulta ELKO: "+lead.producto)}&body=${encodeURIComponent(summary())}`;
+      bot("Abrimos tu aplicación de correo con el mensaje listo.", MENU_AFTER);
+    }}])
+  ]), 400);
+}
+const MENU_AFTER = () => quick([{label:"Hacer otra consulta", action:()=>{ Object.keys(lead).forEach(k=>lead[k]=""); step="idle"; bot("Claro, ¿qué necesitas?", MENU, 300); }}]);
+
+/* Entrada de texto libre */
+form.addEventListener("submit", e=>{
+  e.preventDefault();
+  const text = input.value.trim();
+  if(!text) return;
+  addMsg(text,"user"); input.value = ""; clearQuick();
+
+  switch(step){
+    case "nombre":
+      if(text.length < 2){ bot("¿Me repites tu nombre?"); return; }
+      lead.nombre = text.replace(/^(soy|me llamo|mi nombre es)\s+/i,"").slice(0,60);
+      lead.producto ? askPhone() : askProduct(); return;
+    case "producto":
+      lead.producto = text.slice(0,80); askPhone(); return;
+    case "telefono": {
+      const digits = text.replace(/\D/g,"").replace(/^51(?=9\d{8}$)/,"");
+      if(!/^9\d{8}$/.test(digits)){ bot("Ese número no parece válido. Escribe un celular peruano de 9 dígitos que empiece con 9."); return; }
+      lead.telefono = digits; askEmail(); return;
+    }
+    case "correo":
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(text)){ bot("Ese correo no parece válido. Revísalo o toca “Prefiero no darlo”.", ()=>quick([{label:"Prefiero no darlo", action:()=>{ lead.correo="No indicado"; askComment(); }}])); return; }
+      lead.correo = text; askComment(); return;
+    case "comentario":
+      lead.comentario = text.slice(0,400); confirmLead(); return;
+    case "confirmar":
+      bot("Usa los botones para enviar o corregir tus datos.", ()=>quick([{label:"Enviar al asesor", action:sendLead},{label:"Corregir", action:()=>{ Object.keys(lead).forEach(k=>lead[k]=""); startLead(); }}])); return;
+  }
+
+  const i = intent(text);
+  if(i === "lead") return startLead();
+  if(i === "saludo") return bot("Hola. ¿En qué te ayudo?", MENU);
+  if(i === "gracias") return bot("Con gusto. Si necesitas algo más, aquí estoy.", MENU);
+  if(i && FAQ[i]) return answer(i);
+  bot("No tengo esa respuesta, pero un asesor sí. ¿Te conecto?", ()=> quick([
+    {label:"Sí, conectar con asesor", action:()=>{ lead.comentario = text; startLead(); }},
+    {label:"Ver opciones", action:MENU}
+  ]));
+});
+</script>
+</body>
+</html>
