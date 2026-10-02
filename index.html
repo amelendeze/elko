@@ -147,6 +147,13 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 .chat-input button:hover{background:var(--cobalt)}
 .chat-input svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
 
+.chat-wa{margin-left:auto;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#1FAF55}
+.chat-wa:hover{background:#178f45}
+.chat-wa svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:1.6;stroke-linejoin:round}
+.chat-head .chat-close{margin-left:4px}
+.msg.bot a{color:var(--cobalt);text-decoration:underline;word-break:break-word}
+.msg.bot strong{font-weight:600}
+
 /* Responsive */
 @media (max-width:980px){
   .hero-grid{grid-template-columns:1fr}
@@ -345,7 +352,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 <div class="chat" id="chat" role="dialog" aria-label="Chat de ELKO" aria-hidden="true">
   <div class="chat-head">
     <div class="avatar">E</div>
-    <div><strong>Asistente ELKO</strong><small>Responde al instante</small></div>
+    <div><strong>Asistente ELKO</strong><small id="chatStatus">Responde al instante</small></div>
+    <a href="#" class="chat-wa" id="chatWa" aria-label="Hablar con un asesor por WhatsApp" title="Hablar con un asesor por WhatsApp"><svg viewBox="0 0 24 24"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.3-1.8-.9-.8.8a4 4 0 0 1-2-2l.8-.8-.9-1.8z"/></svg></a>
     <button class="chat-close" id="chatClose" aria-label="Cerrar chat">✕</button>
   </div>
   <div class="chat-body" id="chatBody" aria-live="polite"></div>
@@ -358,8 +366,12 @@ footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
 <script>
 /* ============ CONFIGURACIÓN ============ */
 const CONFIG = {
-  whatsapp: "51987002983",                        // código de país Perú + número
-  email: "arturo.melendez.e@gmail.com",           // destino de los leads (vía FormSubmit)
+  // Chatbot de n8n (Chat Trigger en modo "Embedded Chat")
+  n8nWebhook: "https://amelendez.app.n8n.cloud/webhook/b7e4c1d2-5a6f-4e3b-9c8d-1f2a3b4c5d6e/chat",
+  n8nTimeoutMs: 45000,
+  // Derivación a asesor humano
+  whatsapp: "51987002983",
+  email: "arturo.melendez.e@gmail.com",
   formsubmitEndpoint: "https://formsubmit.co/ajax/arturo.melendez.e@gmail.com"
 };
 
@@ -372,16 +384,24 @@ document.getElementById("yr").textContent = new Date().getFullYear();
   setTimeout(tick, 30000);
 })();
 
-/* ============ Chatbot ============ */
+/* ============ Sesión (n8n usa sessionId para la memoria del agente) ============ */
+function newId(){ return (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36)+Math.random().toString(36).slice(2)); }
+let sessionId;
+try{ sessionId = sessionStorage.getItem("elko_session") || newId(); sessionStorage.setItem("elko_session", sessionId); }
+catch(e){ sessionId = newId(); }
+
+/* ============ Elementos del chat ============ */
 const chat = document.getElementById("chat");
 const body = document.getElementById("chatBody");
 const form = document.getElementById("chatForm");
 const input = document.getElementById("chatText");
 const launch = document.getElementById("chatLaunch");
+const statusEl = document.getElementById("chatStatus");
 
 const lead = { nombre:"", producto:"", telefono:"", correo:"", comentario:"" };
-let step = "idle";      // idle | nombre | producto | telefono | correo | comentario | confirmar | listo
+let step = "agent";     // agent | nombre | producto | telefono | correo | comentario | confirmar
 let started = false;
+let busy = false;
 
 function openChat(product){
   chat.classList.add("open");
@@ -389,7 +409,7 @@ function openChat(product){
   launch.setAttribute("aria-expanded","true");
   launch.querySelector(".dot").style.display = "none";
   if(!started){ started = true; greet(product); }
-  else if(product){ startLead(product); }
+  else if(product){ sendToAgent(`Me interesa: ${product}. ¿Qué me puedes contar?`, true); }
   setTimeout(()=>input.focus(), 250);
 }
 function closeChat(){
@@ -403,14 +423,38 @@ document.getElementById("chatClose").addEventListener("click", closeChat);
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && chat.classList.contains("open")) closeChat(); });
 document.querySelectorAll("[data-open-chat]").forEach(b=>b.addEventListener("click", ()=>openChat()));
 document.querySelectorAll("[data-buy]").forEach(b=>b.addEventListener("click", ()=>openChat(b.dataset.buy)));
-document.querySelectorAll("[data-chat-product]").forEach(a=>a.addEventListener("dblclick", e=>{e.preventDefault();openChat(a.dataset.chatProduct);}));
+document.getElementById("chatWa").addEventListener("click", e=>{
+  e.preventDefault();
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Hola ELKO, quiero hablar con un asesor.")}`, "_blank", "noopener");
+});
 
+/* ============ Render ============ */
+function esc(s){ return s.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+// Markdown mínimo y seguro para las respuestas del agente
+function md(s){
+  let h = esc(String(s).trim());
+  h = h.replace(/^#{1,6}\s+(.+)$/gm, "<strong>$1</strong>");
+  h = h.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  h = h.replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*(?!\*)/g, "$1<em>$2</em>");
+  h = h.replace(/^\s*[-*•]\s+/gm, "• ");
+  h = h.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  h = h.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+  return h;
+}
 function scroll(){ body.scrollTop = body.scrollHeight; }
-function addMsg(text, who="bot"){
+function addMsg(text, who="bot", asMarkdown=false){
   const m = document.createElement("div");
   m.className = "msg " + who;
-  m.textContent = text;
+  if(asMarkdown) m.innerHTML = md(text); else m.textContent = text;
   body.appendChild(m); scroll();
+  return m;
+}
+function typing(){
+  const t = document.createElement("div");
+  t.className = "msg bot";
+  t.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+  body.appendChild(t); scroll();
+  return t;
 }
 function clearQuick(){ body.querySelectorAll(".quick").forEach(q=>q.remove()); }
 function quick(options){
@@ -427,63 +471,108 @@ function quick(options){
   });
   body.appendChild(wrap); scroll();
 }
-function bot(text, then, delay=550){
-  const t = document.createElement("div");
-  t.className = "msg bot";
-  t.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
-  body.appendChild(t); scroll();
+function bot(text, then, delay=450){
+  const t = typing();
   setTimeout(()=>{ t.remove(); addMsg(text,"bot"); if(then) then(); }, delay);
 }
+function setStatus(ok){
+  statusEl.textContent = ok ? "Responde al instante" : "Sin conexión con el asistente";
+}
 
-const MENU = () => quick([
-  {label:"Ver productos", action:()=>answer("productos")},
-  {label:"Envíos", action:()=>answer("envio")},
-  {label:"Formas de pago", action:()=>answer("pago")},
-  {label:"Garantía", action:()=>answer("garantia")},
-  {label:"Quiero comprar", action:()=>startLead()}
-]);
+/* ============ Conexión con n8n ============ */
+// Extrae el texto de la respuesta del Chat Trigger (JSON normal o streaming NDJSON)
+function parseReply(raw){
+  const pick = o => {
+    if(o == null) return "";
+    if(typeof o === "string") return o;
+    if(Array.isArray(o)) return pick(o[0]);
+    return o.output ?? o.text ?? o.message ?? o.response ?? o.answer ?? (o.json ? pick(o.json) : "");
+  };
+  try{ return pick(JSON.parse(raw)) || raw; }
+  catch(e){
+    // Streaming: una línea JSON por fragmento {type:"item", content:"..."}
+    const parts = raw.split("\n").map(l=>{ try{ return JSON.parse(l); }catch(_){ return null; } }).filter(Boolean);
+    const text = parts.filter(p=>p.type==="item" && typeof p.content==="string").map(p=>p.content).join("");
+    return text || raw;
+  }
+}
+
+async function askAgent(text){
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), CONFIG.n8nTimeoutMs);
+  try{
+    const res = await fetch(CONFIG.n8nWebhook, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        action: "sendMessage",
+        sessionId,
+        chatInput: text,
+        metadata: { source: "elko-landing", page: location.href }
+      }),
+      signal: ctrl.signal
+    });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const reply = parseReply(await res.text());
+    if(!reply || !reply.trim()) throw new Error("Respuesta vacía");
+    return reply;
+  } finally { clearTimeout(timer); }
+}
+
+async function sendToAgent(text, showAsUser){
+  if(busy) return;
+  busy = true;
+  if(showAsUser) addMsg(text, "user");
+  clearQuick();
+  const t = typing();
+  try{
+    const reply = await askAgent(text);
+    t.remove();
+    addMsg(reply, "bot", true);
+    setStatus(true);
+    suggestHandoff();
+  }catch(err){
+    t.remove();
+    setStatus(false);
+    console.error("n8n:", err);
+    addMsg(err.name === "AbortError"
+      ? "El asistente tardó demasiado en responder. Puedes intentarlo de nuevo o escribirle directamente a un asesor."
+      : "No pude conectarme con el asistente. Puedes intentarlo de nuevo o escribirle directamente a un asesor.");
+    quick([
+      {label:"Reintentar", silent:true, action:()=>sendToAgent(text, false)},
+      {label:"Escribir por WhatsApp", cls:"wa", silent:true, action:()=>window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Hola ELKO: "+text)}`,"_blank","noopener")},
+      {label:"Dejar mis datos", action:()=>startLead()}
+    ]);
+  }finally{ busy = false; input.focus(); }
+}
+
+function suggestHandoff(){
+  quick([
+    {label:"Dejar mis datos a un asesor", action:()=>startLead()}
+  ]);
+}
 
 function greet(product){
-  bot("Hola, soy el asistente de ELKO. Te ayudo a elegir, resolver dudas o separar tu pedido con un asesor.", ()=>{
-    if(product) startLead(product); else bot("¿Qué necesitas?", MENU, 400);
+  bot("Hola, soy el asistente de ELKO. Pregúntame por productos, precios, envíos o garantía.", ()=>{
+    if(product) sendToAgent(`Me interesa: ${product}. ¿Qué me puedes contar?`, true);
+    else quick([
+      {label:"¿Qué productos tienen?", silent:true, action:()=>sendToAgent("¿Qué productos tienen?", true)},
+      {label:"¿Cómo son los envíos?", silent:true, action:()=>sendToAgent("¿Cómo son los envíos?", true)},
+      {label:"¿Qué formas de pago aceptan?", silent:true, action:()=>sendToAgent("¿Qué formas de pago aceptan?", true)},
+      {label:"Dejar mis datos a un asesor", action:()=>startLead()}
+    ]);
   });
 }
 
-const FAQ = {
-  productos: "Trabajamos cinco categorías: audio, smartphones, laptops, wearables y hogar inteligente. Destacados de hoy: Audífonos Over-Ear Pro (S/ 1,299), Smartphone X 256 GB (S/ 3,499), Laptop Air 14 (S/ 4,799), Reloj Active 2 (S/ 899) y Parlante Studio Mini (S/ 549).",
-  envio: "Enviamos a todo el Perú. Lima: 24 a 48 horas. Provincias: 2 a 5 días hábiles, con número de seguimiento. El costo depende del distrito o ciudad; el asesor te lo confirma.",
-  pago: "Aceptamos tarjetas de crédito y débito, transferencia bancaria, Yape y Plin. Hay cuotas sin intereses con bancos afiliados.",
-  garantia: "Todos los productos son originales, con garantía oficial de 12 meses y boleta o factura. Si hay una falla, gestionamos el servicio técnico por ti.",
-  horario: "Atendemos de lunes a sábado, de 9:00 a 19:00. Fuera de ese horario deja tus datos y te contactamos al día siguiente.",
-  tienda: "Por ahora somos una tienda online con entregas a domicilio. Puedes coordinar recojo con el asesor."
-};
-function answer(key){
-  bot(FAQ[key], ()=> quick([
-    {label:"Quiero comprar", action:()=>startLead()},
-    {label:"Otra consulta", action:()=>bot("Claro, dime.", MENU, 300)}
-  ]));
-}
-
-/* Detección simple de intención por palabras clave */
-function intent(t){
-  const s = t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-  if(/(comprar|pedido|separar|lo quiero|cotiz|asesor|humano|persona|whatsapp)/.test(s)) return "lead";
-  if(/(envio|delivery|despacho|llega|demora|provincia|lima)/.test(s)) return "envio";
-  if(/(pago|pagar|tarjeta|yape|plin|cuota|transferencia)/.test(s)) return "pago";
-  if(/(garantia|original|falla|devolucion|cambio|boleta|factura)/.test(s)) return "garantia";
-  if(/(horario|hora|atienden|abren)/.test(s)) return "horario";
-  if(/(tienda|local|direccion|recojo|ubicacion)/.test(s)) return "tienda";
-  if(/(producto|catalogo|precio|cuanto|audifono|celular|smartphone|laptop|reloj|parlante|camara|stock)/.test(s)) return "productos";
-  if(/^(hola|buenas|buenos|hey|hi)/.test(s)) return "saludo";
-  if(/(gracias|ok|listo|genial)/.test(s)) return "gracias";
-  return null;
-}
-
-/* Flujo de captura de datos */
+/* ============ Captura de datos para asesor humano (local, no pasa por n8n) ============ */
+function resetLead(){ Object.keys(lead).forEach(k=>lead[k]=""); }
 function startLead(product){
-  if(product){ lead.producto = product; step = "nombre"; bot(`Perfecto, te ayudo con "${product}". ¿Cuál es tu nombre?`); }
-  else { step = "nombre"; bot("Te conecto con un asesor. Primero, ¿cuál es tu nombre?"); }
+  resetLead();
+  if(product) lead.producto = product;
+  step = "nombre";
+  bot("Te conecto con un asesor. ¿Cuál es tu nombre?", ()=>quick([{label:"Cancelar", action:backToAgent}]));
 }
+function backToAgent(){ step = "agent"; resetLead(); bot("Listo, sigo aquí para lo que necesites."); }
 function askProduct(){
   step = "producto";
   bot(`Gracias, ${lead.nombre}. ¿Qué producto o categoría te interesa?`, ()=> quick(
@@ -506,17 +595,12 @@ function confirmLead(){
   step = "confirmar";
   bot("Revisa tus datos:\n\n" + summary(), ()=> quick([
     {label:"Enviar al asesor", action:sendLead},
-    {label:"Corregir", action:()=>{ Object.keys(lead).forEach(k=>lead[k]=""); startLead(); }}
+    {label:"Corregir", action:()=>startLead()}
   ]));
 }
-
 async function sendLead(){
-  step = "listo";
-  const t = document.createElement("div");
-  t.className = "msg bot";
-  t.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
-  body.appendChild(t); scroll();
-
+  step = "agent";
+  const t = typing();
   let emailOk = false;
   try{
     const r = await fetch(CONFIG.formsubmitEndpoint, {
@@ -524,41 +608,37 @@ async function sendLead(){
       headers:{ "Content-Type":"application/json", "Accept":"application/json" },
       body: JSON.stringify({
         _subject: `Nuevo lead ELKO: ${lead.producto} — ${lead.nombre}`,
-        _template: "table",
-        _captcha: "false",
+        _template: "table", _captcha: "false",
         Nombre: lead.nombre, Interes: lead.producto, Celular: lead.telefono,
         Correo: lead.correo, Comentario: lead.comentario,
-        Fecha: new Date().toLocaleString("es-PE")
+        Sesion_chat: sessionId, Fecha: new Date().toLocaleString("es-PE")
       })
     });
     const data = await r.json().catch(()=>({}));
     emailOk = r.ok && (data.success === true || data.success === "true");
   }catch(e){ emailOk = false; }
   t.remove();
-
   addMsg(emailOk
     ? "Listo. Tus datos ya llegaron a nuestro equipo por correo."
     : "No se pudo enviar por correo en este momento. Usa WhatsApp para que tu pedido llegue ahora mismo.");
-
-  const waText = encodeURIComponent("Hola ELKO, quiero información:\n\n" + summary());
-  const waURL = `https://wa.me/${CONFIG.whatsapp}?text=${waText}`;
+  const waURL = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Hola ELKO, quiero información:\n\n" + summary())}`;
+  const mailURL = `mailto:${CONFIG.email}?subject=${encodeURIComponent("Consulta ELKO: "+lead.producto)}&body=${encodeURIComponent(summary())}`;
   bot("Toca el botón para enviar tu pedido por WhatsApp y hablar con el asesor.", ()=> quick([
-    {label:"Enviar por WhatsApp", cls:"wa", silent:true, action:()=>{ window.open(waURL, "_blank", "noopener"); bot("Abrimos WhatsApp con tu mensaje listo. Solo presiona enviar.", MENU_AFTER); }},
-    ...(emailOk ? [] : [{label:"Enviar por correo", silent:true, action:()=>{
-      location.href = `mailto:${CONFIG.email}?subject=${encodeURIComponent("Consulta ELKO: "+lead.producto)}&body=${encodeURIComponent(summary())}`;
-      bot("Abrimos tu aplicación de correo con el mensaje listo.", MENU_AFTER);
-    }}])
-  ]), 400);
+    {label:"Enviar por WhatsApp", cls:"wa", silent:true, action:()=>{ window.open(waURL,"_blank","noopener"); bot("Abrimos WhatsApp con tu mensaje listo. Solo presiona enviar."); }},
+    ...(emailOk ? [] : [{label:"Enviar por correo", silent:true, action:()=>{ location.href = mailURL; }}])
+  ]), 350);
 }
-const MENU_AFTER = () => quick([{label:"Hacer otra consulta", action:()=>{ Object.keys(lead).forEach(k=>lead[k]=""); step="idle"; bot("Claro, ¿qué necesitas?", MENU, 300); }}]);
 
-/* Entrada de texto libre */
+/* ============ Entrada de texto ============ */
 form.addEventListener("submit", e=>{
   e.preventDefault();
   const text = input.value.trim();
-  if(!text) return;
-  addMsg(text,"user"); input.value = ""; clearQuick();
+  if(!text || busy) return;
+  input.value = "";
 
+  if(step === "agent"){ sendToAgent(text, true); return; }
+
+  addMsg(text,"user"); clearQuick();
   switch(step){
     case "nombre":
       if(text.length < 2){ bot("¿Me repites tu nombre?"); return; }
@@ -577,18 +657,8 @@ form.addEventListener("submit", e=>{
     case "comentario":
       lead.comentario = text.slice(0,400); confirmLead(); return;
     case "confirmar":
-      bot("Usa los botones para enviar o corregir tus datos.", ()=>quick([{label:"Enviar al asesor", action:sendLead},{label:"Corregir", action:()=>{ Object.keys(lead).forEach(k=>lead[k]=""); startLead(); }}])); return;
+      bot("Usa los botones para enviar o corregir tus datos.", ()=>quick([{label:"Enviar al asesor", action:sendLead},{label:"Corregir", action:()=>startLead()}])); return;
   }
-
-  const i = intent(text);
-  if(i === "lead") return startLead();
-  if(i === "saludo") return bot("Hola. ¿En qué te ayudo?", MENU);
-  if(i === "gracias") return bot("Con gusto. Si necesitas algo más, aquí estoy.", MENU);
-  if(i && FAQ[i]) return answer(i);
-  bot("No tengo esa respuesta, pero un asesor sí. ¿Te conecto?", ()=> quick([
-    {label:"Sí, conectar con asesor", action:()=>{ lead.comentario = text; startLead(); }},
-    {label:"Ver opciones", action:MENU}
-  ]));
 });
 </script>
 </body>
