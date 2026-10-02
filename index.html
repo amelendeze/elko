@@ -369,6 +369,7 @@ const CONFIG = {
   // Chatbot de n8n (Chat Trigger en modo "Embedded Chat")
   n8nWebhook: "https://amelendez.app.n8n.cloud/webhook/b7e4c1d2-5a6f-4e3b-9c8d-1f2a3b4c5d6e/chat",
   n8nTimeoutMs: 45000,
+  debug: true,           // muestra la causa del error en el chat; pon false al publicar
   // Derivación a asesor humano
   whatsapp: "51987002983",
   email: "arturo.melendez.e@gmail.com",
@@ -538,12 +539,25 @@ async function sendToAgent(text, showAsUser){
     addMsg(err.name === "AbortError"
       ? "El asistente tardó demasiado en responder. Puedes intentarlo de nuevo o escribirle directamente a un asesor."
       : "No pude conectarme con el asistente. Puedes intentarlo de nuevo o escribirle directamente a un asesor.");
+    if(CONFIG.debug) addMsg("Diagnóstico: " + diagnose(err), "bot");
     quick([
       {label:"Reintentar", silent:true, action:()=>sendToAgent(text, false)},
       {label:"Escribir por WhatsApp", cls:"wa", silent:true, action:()=>window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent("Hola ELKO: "+text)}`,"_blank","noopener")},
       {label:"Dejar mis datos", action:()=>startLead()}
     ]);
   }finally{ busy = false; input.focus(); }
+}
+
+// Traduce el error técnico a una causa probable (solo con CONFIG.debug = true)
+function diagnose(err){
+  const m = String(err && err.message || err);
+  if(location.protocol === "file:") return "abriste el archivo con doble clic (file://). n8n bloquea ese origen por CORS. Súbelo a un hosting o usa un servidor local.";
+  if(/HTTP 404/.test(m)) return "HTTP 404. La URL no existe o el workflow está inactivo. Revisa la URL en el nodo Chat Trigger y activa el workflow.";
+  if(/HTTP 401|HTTP 403/.test(m)) return m + ". El Chat Trigger tiene autenticación o tu dominio no está en Allowed Origins.";
+  if(/HTTP 5\d\d/.test(m)) return m + ". El workflow se ejecutó pero falló adentro. Revisa Executions en n8n.";
+  if(/Respuesta vacía/.test(m)) return "n8n respondió vacío. Revisa el Response Mode y que el último nodo devuelva un campo output.";
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return "el navegador bloqueó la petición (" + m + "). Casi siempre es CORS: agrega " + location.origin + " en Allowed Origins del Chat Trigger, o el workflow no está activo.";
+  return m;
 }
 
 function suggestHandoff(){
